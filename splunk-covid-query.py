@@ -310,7 +310,7 @@ def search(username, password, baseurl, outfile, ioc_array, num_terms, earliest,
     results = []
     i = 0
     for t in search_terms:
-        print("Queries sent: ", i)
+        print("Queries sent: ", i+1)
         payload = {"search":t}
         r = requests.post(endpoint, auth=(username, password), data=payload, verify=False)
         results.append(r)
