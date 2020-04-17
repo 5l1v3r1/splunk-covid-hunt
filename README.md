@@ -2,10 +2,10 @@
 A Python script to query Splunk for COVID-19 related IOCs as listed by CyberThreatCoalition.org.
 
 ## Dependencies
-- Python 3
+- Python 3.x
 - PyYAML `pip install pyyaml`
 - ElementPath `pip install elementpath`
-- Selenium (optional, if no API access) `pip install selenium`
+- Selenium (optional, if no Splunk API access) `pip install selenium`
   - ChromeDriver WebDriver for your version of Chrome - https://chromedriver.chromium.org/downloads
   - Pyperclip `pip install pyperclip`
 
