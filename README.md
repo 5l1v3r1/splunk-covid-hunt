@@ -63,7 +63,7 @@ Option | Description
 `-o`<br/>`--outfile` | Path of file to output results.
 `--no-api` | Set to `True` to use Splunk web portal with Selenium browser automation instead of Splunk API.
 
-### Contributors
+## Contributors
 Jordan O'Neill<br/>
 Naeem Budhwani<br/>
 Mohammad Faghani<br/>
