@@ -14,7 +14,9 @@ A Python script to query Splunk for COVID-19 related IOCs as listed by CyberThre
     1. If you intend to use Selenium to search without using Splunk's REST API, all items under Selenium must be installed. Otherwise, they are optional.
 1. Place chromedriver.exe in the same directory as splunk-covid-query.py and config.yml.
 1. Populate config.yml with the information of your Splunk instance and your desired search options.
-1. `python ./splunk-covid-query.py [-h] [-v | -u] [--ioc {ip,url,domain,hash,all} [{ip,url,domain,hash,all} ...]] [-p PORT] [--terms TERMS] [-o OUTFILE] [--user USERNAME] [--pass PASSWORD] [--earliest EARLIEST] [--latest LATEST] [--no-api]`
+```powershell 
+python ./splunk-covid-query.py [-h] [-v | -u] [--ioc {ip,url,domain,hash,all} [{ip,url,domain,hash,all} ...]] [-p PORT] [--terms TERMS] [-o OUTFILE] [--user USERNAME] [--pass PASSWORD] [--earliest EARLIEST] [--latest LATEST] [--no-api]
+```
 
 ## Description
 This script fetches indicators of compromise related to the COVID-19 pandemic as reported by CyberThreatCoalition.org (See the blocklist at https://www.cyberthreatcoalition.org/). These IOCs are IPs, URLs, Domains, and Filehashes that have either been human-vetted and confirmed or remain unvetted and potentially related. Splunk-COVID-Query allows you to query your Splunk instance for some or all of these. 
@@ -43,7 +45,7 @@ Option | Description | Sample
 `num_terms` | `<int>` Number of IOCs to search for at a time (to prevent hitting buffer limit, especially when using browser with Selenium). Range is `1` to `3000`, inclusive. Default is `500` | `50` `1000` 
 `outfile` | `<str>` Path to output file for result export. This overrides the `noapi` option and `--no-api` flag.<br/><br/>Note: if the file already exists, it will be overwritten without prompt. | `"/path/to/output.txt"`
 `noapi` | `<bool>` Indicates use of Selenium via browser and Splunk web port over API-triggered search. Not compatible with `outfile` option or `--outfile` flag. Default is `False` | `True`
-`slackbot_webhook` | `<str>` Webhook for the Slack App configured to post to a specific channel. Setup details can be found [here](https://slack.com/intl/en-ca/help/articles/115005265063-Incoming-Webhooks-for-Slack). | `"https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"`
+`slackbot_webhook` | `<str>` Webhook for the Slack App configured to post to a specific channel. Setup details can be found [here](https://slack.com/intl/en-ca/help/articles/115005265063-Incoming-Webhooks-for-Slack). | Details on Slack webhooks [here](https://api.slack.com/messaging/webhooks#posting_with_webhooks#posting_with_webhooks).
 
 ## Input argument options
 All commandline arguments override `config.yml` options aside from `splunk_addr`, which will not be an available positional argument if `splunk_addr` is specified in the config file. More detailed option descriptions  and option defaults can be found in the [table above](#config-file-options).
