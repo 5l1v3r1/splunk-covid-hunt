@@ -1,4 +1,4 @@
-# Splunk-COVID-Query
+# Splunk-COVID-Hunt
 A Python script to query Splunk for COVID-19 related IOCs as listed by CyberThreatCoalition.org.
 
 ## Dependencies
@@ -12,14 +12,14 @@ A Python script to query Splunk for COVID-19 related IOCs as listed by CyberThre
 ## Setup and Usage
 1. Ensure all listed dependencies are installed
     1. If you intend to use Selenium to search without using Splunk's REST API, all items under Selenium must be installed. Otherwise, they are optional.
-1. Place chromedriver.exe in the same directory as splunk-covid-query.py and config.yml.
+1. Place chromedriver.exe in the same directory as splunk-covid-hunt.py and config.yml.
 1. Populate config.yml with the information of your Splunk instance and your desired search options.
 ```powershell 
-python ./splunk-covid-query.py [-h] [-v | -u] [--ioc {ip,url,domain,hash,all} [{ip,url,domain,hash,all} ...]] [-p PORT] [--terms TERMS] [-o OUTFILE] [--user USERNAME] [--pass PASSWORD] [--earliest EARLIEST] [--latest LATEST] [--no-api]
+python ./splunk-covid-hunt.py [-h] [-v | -u] [--ioc {ip,url,domain,hash,all} [{ip,url,domain,hash,all} ...]] [-p PORT] [--terms TERMS] [-o OUTFILE] [--user USERNAME] [--pass PASSWORD] [--earliest EARLIEST] [--latest LATEST] [--no-api]
 ```
 
 ## Description
-This script fetches indicators of compromise related to the COVID-19 pandemic as reported by CyberThreatCoalition.org (See the blocklist at https://www.cyberthreatcoalition.org/). These IOCs are IPs, URLs, Domains, and Filehashes that have either been human-vetted and confirmed or remain unvetted and potentially related. Splunk-COVID-Query allows you to query your Splunk instance for some or all of these. 
+This script fetches indicators of compromise related to the COVID-19 pandemic as reported by CyberThreatCoalition.org (See the blocklist at https://www.cyberthreatcoalition.org/). These IOCs are IPs, URLs, Domains, and Filehashes that have either been human-vetted and confirmed or remain unvetted and potentially related. Splunk-COVID-Hunt allows you to query your Splunk instance for some or all of these. 
 
 If you have API access on your Splunk instance, you can have the search return the SID(s) of the search job(s) that were executed or stream the results to an output file. If you are not exporting to a file, you can configure a [Slack App](https://slack.com/intl/en-ca/help/articles/115005265063-Incoming-Webhooks-for-Slack) to provide a notification via webhook with links to your search job(s).
 
@@ -30,7 +30,7 @@ If you do not have API access, you can use the magic of Selenium's browser autom
 This option is not compatible with exporting to file, but can still leverage a Slack App for notifications with result links.
 
 ## Config file options
-Config settings will be pulled from `config.yml`. A skeleton config file can be found [here](https://github.com/secdevopsteam/splunk-covid-query/blob/master/config.yml).
+Config settings will be pulled from `config.yml`. A skeleton config file can be found [here](https://github.com/secdevopsteam/splunk-covid-hunt/blob/master/config.yml).
 Option | Description | Sample
 ------------|-----------------------------|------------
 `splunk_addr`| `<str>` The URL of your splunk instance. If a port number is required for browser access it must be included. | `"https://splunk.companyxyz.com"`<br/>`"https://splunk.companyxyz.com:8000"`
@@ -39,7 +39,7 @@ Option | Description | Sample
 `password` | `<str>` The password of the Splunk user that will perform the search. | `"NoP@tentNoPoli0"`
 `vetted` | `<bool>` Search only for IOCs that have been vetted by a human. If both `vetted` and `unvetted` are `False`, both will be searched. | `True`
 `unvetted` | `<bool>` Search only for potential IOCs that have not yet been vetted. If both `vetted` and `unvetted` are `False`, both will be searched. | `True`
-`ioc` | `<list><str>` List of IOC types to search for. Options: `-"ip"` `-"url"` `-"domain"` `-"hash"` `-"all"`. If `"all"` option is present, all IOCs will be fetched, regardless of other selections. Default is `"all"`.<br/><br/>Note that CyberThreatCoalition.org is constantly changing/updating their blocklist -- some of these options may not be populated. | See [config.yml](https://github.com/secdevopsteam/splunk-covid-query/blob/master/config.yml) for YAML syntax
+`ioc` | `<list><str>` List of IOC types to search for. Options: `-"ip"` `-"url"` `-"domain"` `-"hash"` `-"all"`. If `"all"` option is present, all IOCs will be fetched, regardless of other selections. Default is `"all"`.<br/><br/>Note that CyberThreatCoalition.org is constantly changing/updating their blocklist -- some of these options may not be populated. | See [config.yml](https://github.com/secdevopsteam/splunk-covid-hunt/blob/master/config.yml) for YAML syntax
 `time_earliest` | `<str>` [Splunk time modifier](https://docs.splunk.com/Documentation/Splunk/8.0.3/SearchReference/SearchTimeModifiers) for earliest bound of search range. Default is `1` (UNIX Epoch) | `"@d"` `"-12h"` `"06/29/1996:19:07:12"`
 `time_latest` | `<str>` [Splunk time modifier](https://docs.splunk.com/Documentation/Splunk/8.0.3/SearchReference/SearchTimeModifiers) for latest bound of search range. | `"now"` `"-6h"` `"11/02/2019:04:12:00"`
 `num_terms` | `<int>` Number of IOCs to search for at a time (to prevent hitting buffer limit, especially when using browser with Selenium). Range is `1` to `3000`, inclusive. Default is `500` | `50` `1000` 
