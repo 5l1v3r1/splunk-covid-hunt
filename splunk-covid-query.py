@@ -74,8 +74,8 @@ def main():
     parser.add_argument('-p', '--port', dest='port', help="Custom port for API calls. Default is 8089 or 8000 with --no-api flag.", default=config_port, type=str)
     parser.add_argument('--terms', dest="terms", help="Number of iocs to search for at a time. Default = 500.", default=config_numterms, type=max_terms)
     group2.add_argument('-o', '--outfile', '--output', dest='outfile', help="Path to output file. If no file is specified, search results will not be streamed and search SID will be returned.", default=config_outfile, type=str)
-    parser.add_argument('--user', dest='username', help="Splunk username.", default=config_username, type=str)
-    parser.add_argument('--pass', dest='password', help="Splunk pasword.", default=config_password, type=str)
+    parser.add_argument('--user', '--username', dest='username', help="Splunk username.", default=config_username, type=str)
+    parser.add_argument('--pass', '--password', dest='password', help="Splunk pasword.", default=config_password, type=str)
     parser.add_argument('--earliest', dest='earliest', help='Splunk date code for earliest event to search: [%%m/%%d/%%Y:%%H:%%M:%%S] or -6h (relative)', default=config_earliest, type=str)
     parser.add_argument('--latest', dest='latest', help='Splunk date code for latest event to search: [%%m/%%d/%%Y:%%H:%%M:%%S] or -30m (relative)', default=config_latest, type=str)
 
