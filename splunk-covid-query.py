@@ -1,6 +1,3 @@
-## TO-DO
-#   1. Add config file for arguments (esp. slackbot details)
-
 import yaml
 import os.path
 import argparse
