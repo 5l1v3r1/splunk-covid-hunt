@@ -1,0 +1,28 @@
+#### Config file for splnk-covid-query
+## These options are overridden by command-line options
+
+# URL of Splunk instance -- you may need to include web port for proper result URLs
+splunk_addr : #"https://splunk-es:8000"
+# API port or web port (for selenium search with --no-api option). Defaults are 8089 for API or 8000 if --no-api = True.
+port : #8089
+# Credentials for splunk instance
+username : #"admin"
+password : #"P@ssw0rd!"
+# Select vetted, unvetted, or all IOCs listed by CyberThreatCoalition.org. If both are set to False, all will be searched.
+vetted : #True
+unvetted : #False
+# Select types of IOC to search. Options are ['ip', 'url', 'hash', 'domain', 'all']. If 'all' is present, all will be searched, regardless of other options.
+ioc :
+# - "url"
+# - "ip"
+# Set search range using Splunk time modifiers. Defaults are earliest=1 and latest=now Reference: https://docs.splunk.com/Documentation/Splunk/8.0.3/Search/Specifytimemodifiersinyoursearch
+time_earliest : #"-8h"
+time_latest : #"-2h"
+# Select number of IOCs to search for at a time. Range is 1 to 3000, inclusive. Default is 500.
+num_terms: #1000
+# Choose file to output results to. This is only applicable to API search and will not return an SID to reference within Splunk later on.
+outfile : #"output.txt"
+# Set to True to search using selenium. API search is recommended if you have API access. --outfile option will override.
+noapi : #False
+# Set webhook for SlackBot to notify on completion of each search, and provide link to results.
+slackbot_webhook : #"https://hooks.slack.com/services/.........../.........../........................"
