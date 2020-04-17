@@ -63,6 +63,15 @@ Option | Description
 `-o`<br/>`--outfile` | Path of file to output results.
 `--no-api` | Set to `True` to use Splunk web portal with Selenium browser automation instead of Splunk API.
 
+## Contributing
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+## To-Do
+1. Add count of results to Slack notification
+    1. for searches usinf Selenium
+    1. for non-export API searches
+1. Add slack notification for completion of API searches using the `/export` endpoint
+
 ## Contributors
 Jordan O'Neill<br/>
 Naeem Budhwani<br/>
