@@ -64,9 +64,9 @@ Option | Description
 `--no-api` | Set to `True` to use Splunk web portal with Selenium browser automation instead of Splunk API.
 
 ### Contributors
-Jordan O'Neill
-Naeem Budhwani
-Mohammad Faghani
+Jordan O'Neill<br/>
+Naeem Budhwani<br/>
+Mohammad Faghani<br/>
 
 
 
