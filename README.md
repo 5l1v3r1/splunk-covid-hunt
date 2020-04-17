@@ -25,7 +25,7 @@ If you have API access on your Splunk instance, you can have the search return t
 
 If you do not have API access, you can use the magic of Selenium's browser automation (by invoking the `--no-api` flag)! The script will access your splunk instance through your web browser and perform searches "manually" as a human normally would:
 
-\*\*\*INSERT GIF HERE\*\*\*
+![](selenium_search2.gif)
 
 This option is not compatible with exporting to file, but can still leverage a Slack App for notifications with result links.
 
