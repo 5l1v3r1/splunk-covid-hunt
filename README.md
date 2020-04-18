@@ -68,7 +68,7 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 ## To-Do
 1. Add count of results to Slack notification
-    1. for searches usinf Selenium
+    1. for searches using Selenium
     1. for non-export API searches
 1. Add slack notification for completion of API searches using the `/export` endpoint
 1. Add support for other SIEMs (e.g. ArcSight, QRadar, etc.)
