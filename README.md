@@ -76,6 +76,7 @@ Pull requests are welcome. For major changes, please open an issue first to disc
     1. Firefox
     1. Safari
 1. Add support for other SIEMs (e.g. ArcSight, QRadar, etc.)
+1. Add option for alternate search modifiers (e.g. source)
 
 ## Contributors
 Jordan O'Neill<br/>
