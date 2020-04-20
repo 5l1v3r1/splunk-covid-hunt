@@ -52,6 +52,7 @@ All commandline arguments override `config.yml` options aside from `splunk_addr`
 Option | Description
 ------------|------------
 `splunk_addr` | The URL of your splunk instance. If a port number is required for browser access it must be included. NOTE: Do not include if `splunk_addr` is already included in your `config.yml`
+`-p`<br/>`--port` | Custom port for Splunk API access. Default is 8089.
 `--user`<br/>`--username` | Username
 `--pass`<br/>`--password` | Password
 `-v`<br/>`--vetted` | Search only for vetted IOCs
@@ -67,10 +68,13 @@ Option | Description
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
 ## To-Do
-1. Add count of results to Slack notification
-    1. for searches using Selenium
-    1. for non-export API searches
-1. Add slack notification for completion of API searches using the `/export` endpoint
+1. Add count of results to Slack notification \[Done\]
+    1. for searches using Selenium \[Done\]
+    1. for non-export API searches \[Done\]
+1. Add slack notification for completion of long API searches using the `/export` endpoint
+1. Add support for other browsers
+    1. Firefox
+    1. Safari
 1. Add support for other SIEMs (e.g. ArcSight, QRadar, etc.)
 
 ## Contributors
