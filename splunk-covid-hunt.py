@@ -7,6 +7,7 @@ import urllib.parse
 from urllib.parse import parse_qs
 import xml.etree.ElementTree as ET
 import pyperclip
+import sys
 try:
     from selenium import webdriver
     from selenium.common.exceptions import NoSuchElementException
@@ -70,12 +71,12 @@ def main():
     group.add_argument('-u', '--unvetted', dest='unvetted', help="Include only unvetted IOCs.", default=config_unvetted, action="store_true")
     parser.add_argument('--ioc', dest='ioc', help="Select IOCs to search for. Options: [ip, url, domain, hash, all]. Default = all.", choices=['ip', 'url', 'domain', 'hash', 'all'], default=config_ioc, nargs='+')
     if not splunk_addr:
-        parser.add_argument('splunk_addr', help="URL of your Splunk instance.", type=str)
-    parser.add_argument('-p', '--port', dest='port', help="Custom port for API calls. Default is 8089 or 8000 with --no-api flag.", default=config_port, type=str)
+        parser.add_argument('splunk_addr', help="URL of your Splunk instance, including web port if required.", type=str)
+    parser.add_argument('-p', '--port', dest='port', help="Custom port for API calls. Default is 8089.", default=config_port, type=str)
     parser.add_argument('--terms', dest="terms", help="Number of iocs to search for at a time. Default = 500.", default=config_numterms, type=max_terms)
     group2.add_argument('-o', '--outfile', '--output', dest='outfile', help="Path to output file. If no file is specified, search results will not be streamed and search SID will be returned.", default=config_outfile, type=str)
-    parser.add_argument('--user', '--username', dest='username', help="Splunk username.", default=config_username, type=str)
-    parser.add_argument('--pass', '--password', dest='password', help="Splunk pasword.", default=config_password, type=str)
+    parser.add_argument('--user', dest='username', help="Splunk username.", default=config_username, type=str)
+    parser.add_argument('--pass', dest='password', help="Splunk pasword.", default=config_password, type=str)
     parser.add_argument('--earliest', dest='earliest', help='Splunk date code for earliest event to search: [%%m/%%d/%%Y:%%H:%%M:%%S] or -6h (relative)', default=config_earliest, type=str)
     parser.add_argument('--latest', dest='latest', help='Splunk date code for latest event to search: [%%m/%%d/%%Y:%%H:%%M:%%S] or -30m (relative)', default=config_latest, type=str)
 
@@ -94,7 +95,7 @@ def main():
         print("Missing Splunk credentials. Please use the -u|--username and -p|--password options or update your config.yml file.")
         return
 
-    # Analyze arguments to summarize search selections for user
+    # Analyze other arguments to summarize search selections for user
     if args.vetted:
         vetted_choice="[VETTED]"
     elif args.unvetted:
@@ -113,25 +114,30 @@ def main():
     if args.outfile:
         args.noapi = False
     
-    if args.noapi and args.port == None:
-        args.port = "8000"
-    elif not args.noapi and args.port == None:
+    if not args.noapi and args.port == None:
         args.port = "8089"
 
+    if args.noapi:
+        api_str = " using Selenium "
+    else:
+        api_str = " via Splunk REST API "
+
     if args.outfile:
-        result_dest="Results will be stored in [" + args.outfile.upper() + "]"
+        result_dest="\nResults will be stored in [" + args.outfile.upper() + "]"
     else:
-        result_dest="Search ID will be returned after search is started in Splunk"
+        result_dest="\nSearch ID will be returned after search is started in Splunk"
 
-    print('Querying Splunk at [' + str( splunk_addr.upper()) + '] on [PORT ' + str(args.port) + '] for ' + str(vetted_choice) + ' IOCs under ' + str(ioc_choice) + '. ' + str(result_dest) + '.\n\n')
-    confirm = input("Is this correct? Continue [y/n]: ")
-
-    # Accommodate inclusion/exclusion of web port in splunk address
+    # Handle web port vs API port and set summary string
     count = splunk_addr.count(':')
-    if count == 2:
+    if count == 2 and not args.noapi:
         baseurl =  splunk_addr.rsplit(':', 1)[0] + ":" + args.port
-    else:
+    elif count == 1 and not args.noapi:
         baseurl = splunk_addr + ":" + args.port
+    else:
+        baseurl = splunk_addr
+
+    print('Querying Splunk' + api_str + 'at [' + str( baseurl.upper()) + '] for ' + str(vetted_choice) + ' IOCs under ' + str(ioc_choice) + '. ' + str(result_dest) + '.\n\n')
+    confirm = input("Is this correct? Continue [y/n]: ")
     
     # Confirm search options with user input and search
     if confirm == 'y':
@@ -150,25 +156,11 @@ def main():
             #browser = webdriver.Safari()
             login = selenium_login(args.username, args.password, baseurl, browser)
             if login == 0:
-                sids = selenium_search(baseurl, browser, ioc_array, args.terms, args.earliest, args.latest)
-                if not sids:
-                    print("Error: No SIDs returned.")
-                else:
-                    # Attempt Slack notification
-                    if slack_webhook:
-                        print("Sending Slack notification(s)...")
-                        for sid in sids:
-                            slack_bot_webhook(slack_webhook, splunk_addr, None, sid)
-                    else:
-                        print("No Slack webhook. Printing SIDs...")
-                    # Print results to terminal
-                    for sid in sids:
-                        print("Search completed! Your results can be found at " + str(splunk_addr) + "/app/search/search?sid=" + str(sid))     
+                sids = selenium_search(baseurl, browser, ioc_array, args.terms, args.earliest, args.latest)     
             else:
                 print("Login failed! Exiting...")
             browser.close()
-            browser.quit()
-        
+            browser.quit() 
         # API search
         else:
             sids = search(args.username, args.password, baseurl, args.outfile, ioc_array, args.terms, args.earliest, args.latest)
@@ -176,20 +168,22 @@ def main():
         # Check for results
         if args.outfile:
             print("Your results have been printed to a local file: " + args.outfile)
+            message = build_notification_message(sids)
+            slack_bot_webhook(slack_webhook, message)
         elif not sids:
-            print("API request did not return expected xml response. Exiting...")
+            print("Error: No SIDs returned.")
         else:
             # Attempt Slack notification
             if slack_webhook:
                 print("Sending Slack notification(s)...")
-                for sid in sids:
-                    slack_bot_webhook(slack_webhook, splunk_addr, None, sid)
+                print("SIDs: ", sids)
+                message = build_notification_message(sids, splunk_addr)
+                slack_bot_webhook(slack_webhook, message)
             else:
                 print("No Slack webhook. Printing SIDs...")
             # Print results to terminal
             for sid in sids:
                 print("Search completed! Your results can be found at " + str(splunk_addr) + "/app/search/search?sid=" + str(sid))
-    else:
         print("Exiting...")
 
 # Validate num_terms option input
@@ -316,19 +310,27 @@ def search(username, password, baseurl, outfile, ioc_array, num_terms, earliest,
         results.append(r)
         i += 1
 
-    # Parse XML response and write to outfile
+    # Parse XML response and write to outfile -- return result count
     sids = []
     if outfile:
+        num_results = 0
         f = open(outfile, "w+")
         for result in results:
-            parsexml(result.text, f)
+            num_results += parsexml(result.text, f)
         f.close()
-        return
+        return num_results
     # Parse XML responses and return array of SIDs
     else:
         for result in results:
             sids.append(parsexml(result.text))
-        return sids
+        # Get result count
+        sid_matches = []
+        for sid in sids:
+            endpoint = baseurl + "/services/search/jobs/" + str(sid) + "/results"
+            r = requests.get(endpoint, auth=(username, password), verify=False)
+            num_results = parsexml(r.text, count_only=True)
+            sid_matches.append((sid, num_results))
+        return sid_matches
 
 # Login to Splunk via web portal using Selenium
 def selenium_login(username, password, baseurl, driver):
@@ -349,7 +351,7 @@ def selenium_login(username, password, baseurl, driver):
         print("Splunk login failed!\nExiting...")
         return 1
 
-# Perform search using Selenium and return array of SIDs
+# Perform search using Selenium and return array of (SID, num_matches) tuples
 def selenium_search(baseurl, driver, ioc_array, num_terms, earliest, latest):
     # Set search endpoint
     endpoint = baseurl + "/app/search/search"
@@ -368,9 +370,9 @@ def selenium_search(baseurl, driver, ioc_array, num_terms, earliest, latest):
             i = 0
     if i != 0:
         search_terms.append(search_term[:-5])
-    #search_terms = ["VendorID=5036 earliest=0","VendorID=1043 earliest=0"]
 
     # Send query(ies) and return array of SIDs
+    i = 0
     for t in search_terms:
         driver.get(endpoint)
         sleep(5)
@@ -381,15 +383,21 @@ def selenium_search(baseurl, driver, ioc_array, num_terms, earliest, latest):
         search_button.click()
         sleep(10)
         parsed = urllib.parse.urlparse(driver.current_url)
-        sids.append(str(parse_qs(parsed.query)['sid'])[2:-2])
+        result_count = driver.find_element_by_xpath('//span[starts-with(@id, "count-views-shared-jobstatus-count")]//span[@class="number"]')
+        i += 1
+        print("Queries sent: " + str(i))
+        sids.append((str(parse_qs(parsed.query)['sid'])[2:-2], int(result_count.text)))
     return sids
 
-def parsexml(xml_response, outfile=None):
+def parsexml(xml_response, outfile=None, count_only=False):
     # Instantiate tree from string
     root = ET.fromstring(xml_response)
-
+    if xml_response == "<results preview='0'/>":
+        # Results check from API search is empty
+        numResults = 0
+        return numResults
     try:
-        if not outfile:
+        if not outfile and not count_only:
             return root[0].text
         else:
             # Check if message type is FATAL (empty search) 
@@ -404,6 +412,9 @@ def parsexml(xml_response, outfile=None):
                     numResults += 1
             print("Query returned " + str(numResults) + " results.", file=outfile)
             print("Query returned ", numResults, " results.")
+
+            if count_only:
+                return numResults
 
             for resultIndex in range(0, numResults):
                 print("\n\nRESULT (#)  |   FIELD (#)   |   FIELD NAME   |   VALUE", file=outfile)
@@ -425,19 +436,24 @@ def parsexml(xml_response, outfile=None):
                         print("\t\t", fieldIndex+1, "\t", root[resultIndex+2][fieldIndex].attrib['k'], "\t", root[resultIndex+2][fieldIndex][0].text, file=outfile)
             return numResults
     except:
-        print("An exception occured while attempting to parse")
+        print("An exception occured while attempting to parse: ", sys.exc_info()[0])
 
-def slack_bot_webhook(webhook, baseurl, num_results=None, job_sid=''):
-    # TO-DO - Still missing result count (parsexml return)
-    if not job_sid:
-        job_sid = "Your results were exported to a local file."
+def build_notification_message(results, baseurl=None):
+    if type(results) == int:
+        # Result count from parsexml()
+        message = "Your search has returned a total of " + str(results) + " matches.\nYour search results were exported to a local file."
+        return message
     else:
-        job_sid = "Your results can be found at " + str(baseurl) + "/app/search/search?sid=" + str(job_sid)
-    if num_results:
-        num_results = " with " + str(num_results) + " results."
-    else:
-        num_results = "."
-    message="Your Splunk query for COVID-19 related IOCs has completed" + str(num_results) + "\n\n" + str(job_sid)
+        # SIDs and match count
+        total = 0
+        urls = ""
+        for result in results:
+            total += int(result[1])
+            urls += "\n\n\tMatches: " + str(result[1]) + "\n\tLink: " + str(baseurl) + "/app/search/search?sid=" + str(result[0])
+        message = "Your search(es) returned a total of " + str(total) + " matches." + urls
+    return message
+
+def slack_bot_webhook(webhook, message):
     payload={"text":message}
     try:
         r = requests.post(webhook, json=payload)
